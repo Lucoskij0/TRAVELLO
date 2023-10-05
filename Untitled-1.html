@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webglearth Example</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f3f3f3; 
+        }
+
+        #banner {
+            background-color: rgba(0, 0, 0, 0.7); 
+            color: white;
+            padding: 10px 20px;
+            font-size: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #earth_div {
+            position: absolute;
+            top: 100px; 
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        #selectors {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            z-index: 1000;
+            font-weight: 600;
+            
+        }
+
+        select {
+            font-weight: bold;
+            padding: 5px;
+            margin-right: 10px;
+        }
+
+        #infoPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            max-width: 100%;
+            max-height: 80%;
+            background-color: rgb(4, 70, 40);
+            border: 1px solid black;
+            z-index: 2000;
+            padding: 20px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            font-weight: bold;
+        }
+
+        #closeButton {
+            float: right;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #ccc;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .bold-text {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="banner">TRAVELLO</div>
+    <div id="selectors">
+        <select id="continentSelect" onchange="populateCountries()">
+            <option value="NULL">Select Continent</option>
+            <option value="North America">North America</option>
+            <option value="South America">South America</option>
+            <option value="Europe">Europe</option>
+            <option value="Asia">Asia</option>
+            <option value="Africa">Africa</option>
+            <option value="Oceania">Oceania</option>
+        </select>
+        <select id="countrySelect">
+            <option value="NULL">Select Country</option>
+        </select>
+    </div>
+    <button onclick="openPopup()" style="position:absolute; top:10px; right:10px; z-index:1001;">Contact & Info</button>
+
+    <div id="infoPopup">
+        <button id="closeButton" onclick="closePopup()">X</button>
+        <h2>Creatori</h2>
+        <p><span class="bold-text">Nome:</span> Fiorani Luca & Davide Martiniello </p>
+        <p><span class="bold-text">Email:</span> Lucoskij0@gmail.com </p>
+        
+    </div>
+
+    <div id="earth_div"></div>
+
+    <script src="https://www.webglearth.com/v2/api.js"></script>
+    <script>
+        const continents = {
+            "North America": ['USA', 'Canada', 'Mexico'],
+            "South America": ['Brazil'],
+            "Europe": ['UK', 'Italy', 'Germany', 'Spain', 'France', 'Netherlands'],
+            "Asia": ['India', 'China', 'Russia', 'Japan', 'South Korea'],
+            "Africa": ['South Africa', 'Egypt', 'Nigeria', 'Kenya', 'Morocco'],
+            "Oceania": ['Australia', 'New Zealand'],
+        };
+
+        const countries = [
+    {name: 'USA', coords: [37.0902, -95.7129], link: 'https://www.zillow.com/homes/for_sale/'},
+    {name: 'Canada', coords: [56.1304, -106.3468], link: 'https://www.realtor.ca/'},
+    {name: 'Mexico', coords: [23.6345, -102.5528], link: 'https://www.topmexicorealestate.com/homes.php'},
+    {name: 'Brazil', coords: [-14.2350, -51.9253], link: 'https://real-estate-brazil.com/'},
+    {name: 'UK', coords: [55.3781, -3.4360], link: 'https://www.rightmove.co.uk/'},
+    {name: 'India', coords: [20.5937, 78.9629], link: 'https://www.99acres.com/'},
+    {name: 'China', coords: [35.8617, 104.1954], link: 'https://www.4321property.com/china/'},
+    {name: 'Russia', coords: [61.5240, 105.3188], link: 'https://realting.com/russia'},
+    {name: 'Japan', coords: [36.2048, 138.2529], link: 'https://realestate.co.jp/'},
+    {name: 'South Korea', coords: [35.9078, 127.7669], link: 'https://seoulhomes.kr/'},
+    {name: 'South Africa', coords: [-30.5595, 22.9375], link: 'https://www.century21global.com/en/l/homes-for-sale/south-africa'},
+    {name: 'Egypt', coords: [26.8206, 30.8025], link: 'https://www.propertyfinder.eg/en/buy/properties-for-sale.html'},
+    {name: 'Nigeria', coords: [9.0820, 8.6753], link: 'https://nigeriapropertycentre.com/for-sale/houses/showtype'},
+    {name: 'Kenya', coords: [-0.0236, 37.9062], link: 'https://www.buyrentkenya.com/houses-for-sale'},
+    {name: 'Morocco', coords: [31.7917, -7.0926], link: 'https://www.mubawab.ma/en/sc/houses-for-sale'},
+    {name: 'Germany', coords: [51.1657, 10.4515], link: 'https://www.immowelt.de/suche/haeuser/kaufen?gclid=CjwKCAjwvfmoBhAwEiwAG2tqzE0Ar0unxSxVZFfFmPZ-9-wZGdo5IjEwgauZR_43fUEHTbAyeuQJVhoC68AQAvD_BwE&gclsrc=aw.ds'},
+    {name: 'France', coords: [46.603354, 1.888334], link: 'https://www.green-acres.fr/en?utm_source=google&utm_campaign=France_EN-expensive&gclid=CjwKCAjwvfmoBhAwEiwAG2tqzBa8SYN2RvpbHYs4NjCZCz5mCAIAyRCUilXNn4rXV1F6OF-mAEo6LhoC3OwQAvD_BwE'},
+    {name: 'Italy', coords: [41.9028, 12.4964], link: 'https://www.immobiliare.it/'},
+    {name: 'Spain', coords: [40.4637, -3.7492], link: 'https://www.thinkspain.com/property-for-sale'},
+    {name: 'Netherlands', coords: [52.3785, 4.9009], link: 'https://www.funda.nl/en/'},
+    {name: 'Australia', coords: [-25.2744, 133.7751], link: 'https://www.property.com.au/buy/'},
+    {name: 'New Zealand', coords: [-40.9006, 174.8860], link: 'https://www.oneroof.co.nz/search/houses-for-sale/region_all-new-zealand-1_showmap_on_page_552?gclid=CjwKCAjwvfmoBhAwEiwAG2tqzMPDBeLVXZVa4psJnNjeaa-yEjRCySIdthMLP5kTDwAZsQddMwepSBoC5zUQAvD_BwE'}
+];
+
+        let earth;
+
+        function initialize() {
+            earth = new WE.map('earth_div');
+            WE.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(earth);
+
+            countries.forEach(country => {
+                const marker = WE.marker(country.coords).addTo(earth);
+                marker.bindPopup(`<a href="${country.link}">Clicca qui per ${country.name}</a>`, {maxWidth: 150, closeButton: true});
+            });
+        }
+
+        function populateCountries() {
+            const selectedContinent = document.getElementById('continentSelect').value;
+            const countrySelect = document.getElementById('countrySelect');
+            
+            // Clear existing options
+            countrySelect.innerHTML = '<option value="NULL">Select Country</option>';
+
+            if (selectedContinent !== 'NULL') {
+                const countryList = continents[selectedContinent];
+                countryList.forEach(countryName => {
+                    const option = document.createElement('option');
+                    option.value = countryName;
+                    option.textContent = countryName;
+                    countrySelect.appendChild(option);
+                });
+            }
+        }
+
+        function centerCountry() {
+            const selectedCountry = document.getElementById('countrySelect').value;
+            if (selectedCountry !== 'NULL') {
+                const country = countries.find(c => c.name === selectedCountry);
+                if (country) {
+                    earth.setView(country.coords, 5);  // 3 è lo zoom level. Puoi regolarlo come preferisci.
+                }
+            }
+        }
+
+        document.getElementById('countrySelect').addEventListener('change', centerCountry);
+
+        function openPopup() {
+            document.getElementById('infoPopup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('infoPopup').style.display = 'none';
+        }
+
+        initialize();
+        
+    </script>
+</body>
+</html>
+<style>
+    body {
+        background-color: rgba(11, 87, 40, 0.478); /* Sostituisci "lightgray" con il colore desiderato */
+    }
+</style>
